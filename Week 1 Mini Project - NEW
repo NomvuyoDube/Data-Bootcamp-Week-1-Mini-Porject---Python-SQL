@@ -1,0 +1,48 @@
+
+# !pip install duckdb - this line only works in Jupyter notebooks, not in VS Code] installed duckdb via linux terminal 
+
+# import libraries 
+import  duckdb                                                               # Import DuckDB for running SQL queries directly in Python
+import io                                                                    # Import io for handling in-memory text streams (like files)    
+
+
+# step 1 - read csv file contents 
+with open ("delivery_data.csv", "r") as f:                                     # Open the CSV file in read mode
+    csv_text = f.read()                                                        # Read the whole CSV into a text string
+
+
+# step 2 - create a table from the csv 
+tbl = duckdb.from_csv_auto(io.StringIO(csv_text))
+# Convert the CSV text into a file-like object using StringIO
+# DuckDB automatically reads it and creates a table called 'tbl'
+
+
+# step 3 - query using sql (table is registered as 'tbl')
+result = duckdb.sql("SELECT * FROM tbl LIMIT 100")                                # Run an SQL query on the table 'tbl' (here: select first 100 rows)
+
+# step 4 - display results 
+print(result)
+
+# filter where delay > 0
+delayed_deliveries=duckdb.sql("""
+    SELECT *
+    FROM tbl
+    WHERE delay_minutes>0
+""")
+
+# Runs a SQL query in DuckDB and stores the result in summary
+# Selects the city, counts delayed deliveries, and calculates the average delay
+# Sorts the cities by the number of delays in descending order
+summary = duckdb.sql("""                                                         
+    SELECT city, COUNT(*) AS num_delays, AVG(delay_minutes) AS avg_delay   
+    FROM tbl
+    WHERE delay_minutes>0
+    GROUP BY city 
+    ORDER BY num_delays DESC                                                     
+""")        
+
+print(summary)
+                     
+                     
+                    
+                    
